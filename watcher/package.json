@@ -1,0 +1,51 @@
+{
+  "name": "zos-ibc-watcher",
+  "description": "Watches all chains for transactions and inserts them into a database",
+  "version": "0.0.1",
+  "author": "Christoph Michel",
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "license": "MIT",
+  "scripts": {
+    "start-dev": "NODE_ENV=development nodemon --exec ts-node src/index.ts",
+    "start": "NODE_ENV=production node build/index.js",
+    "build": "NODE_ENV=production tsc && npm run post-build",
+    "post-build": "cp -R src/views/ build/views/ && rm -rf logs",
+    "deploy": "npm run build && gcloud app deploy --stop-previous-version"
+  },
+  "dependencies": {
+    "@dfuse/client": "^0.3.0",
+    "@google-cloud/datastore": "^5.0.0",
+    "@types/node": "^8.10.56",
+    "body-parser": "^1.18.1",
+    "date-fns": "^2.6.0",
+    "dotenv": "^8.2.0",
+    "ejs": "^3.0.1",
+    "eosjs": "^20.0.0",
+    "express": "^4.16.4",
+    "knex": "^0.20.4",
+    "long": "^4.0.0",
+    "node-fetch": "^2.6.0",
+    "nodemon": "^1.19.4",
+    "objection": "^2.0.6",
+    "pg": "^7.14.0",
+    "sqlite3": "^4.1.1",
+    "ts-node": "^3.3.0",
+    "typescript": "3.3.3333",
+    "winston": "^3.2.1",
+    "ws": "^7.2.0"
+  },
+  "devDependencies": {
+    "@google-cloud/nodejs-repo-tools": "^3.3.0"
+  },
+  "cloud-repo-tools": {
+    "test": {
+      "app": {
+        "msg": "Last 10 visits:"
+      }
+    },
+    "requiresKeyFile": true,
+    "requiresProjectId": true
+  }
+}

@@ -1,0 +1,298 @@
+---
+dev:
+  chain_id: cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f
+  node_endpoint: http://localhost:8888
+  accounts_manager: eosio # account signing the new_account actions (needed when creating the accounts for the first time)
+  funds_manager: eosio # account distributing tokens to accounts (liquid ones but also for staking)
+  ram_manager: eosio # account buying RAM for accounts
+
+  accounts:
+    eosio:
+      signature:
+        type: key
+        private_keys:
+          - 5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3
+      # code: packages/eosio_system/eosio.bios.wasm
+      # abi: packages/eosio_system/eosio.bios.abi
+
+    eosio.token:
+      signature:
+        type: key
+        private_keys:
+          - 5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3
+      auth:
+        owner:
+          permissions:
+            - EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+        active:
+          permissions:
+            - EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV
+      code: eosio.contracts/build/eosio.token/eosio.token.wasm
+      abi: eosio.contracts/build/eosio.token/eosio.token.abi
+
+    zosdiscount1:
+      signature:
+        type: key
+        private_keys:
+          - 5JXd2wAQifW2kUYUtkKTcJgZbyAra9tqubXj8X3rtY8tTh8jLE3
+      auth:
+        owner:
+          permissions:
+            - EOS6ZEzH9DScrrwaokEjWiUdChq55CFA5hf5hA8z7zuqPRsVXXGFk
+        active:
+          permissions:
+            - EOS6ZEzH9DScrrwaokEjWiUdChq55CFA5hf5hA8z7zuqPRsVXXGFk
+            - zosdiscount1@eosio.code
+            - zoswaxconvr1@eosio.code
+      code: zos.token/build/token.wasm
+      abi: zos.token/build/token.abi
+
+    zoswaxconvr1:
+      signature:
+        type: key
+        private_keys:
+          - 5J3JPwtUCsYLiqD8K2pxRkNB8qEE3cKh348iU4g45CLKH9repXW
+      auth:
+        owner:
+          permissions:
+            - EOS85nGtvPxjJXBdgVr65akebfVNiNenftHmoDockBUnycD9m2mvG
+        active:
+          permissions:
+            - EOS85nGtvPxjJXBdgVr65akebfVNiNenftHmoDockBUnycD9m2mvG
+            - zoswaxconvr1@eosio.code
+      code: converteribc/build/converteribc.wasm
+      abi: converteribc/build/converteribc.abi
+
+    zosreporter1:
+      signature:
+        type: key
+        private_keys:
+          - 5JDixw9gE18UbvHXJbayRNR9Udh9Bp8LHhx2eDCZrxL78Y14yuu
+      auth:
+        owner:
+          permissions:
+            - EOS6diWN3ai7xbFrf95CHCaofBXSGy5pkfFLsKjarABGkuBHLG5Rj
+        active:
+          permissions:
+            - EOS6diWN3ai7xbFrf95CHCaofBXSGy5pkfFLsKjarABGkuBHLG5Rj
+
+    zosreceiver1:
+      signature:
+        type: key
+        private_keys:
+          - 5JDixw9gE18UbvHXJbayRNR9Udh9Bp8LHhx2eDCZrxL78Y14yuu
+      auth:
+        owner:
+          permissions:
+            - EOS6diWN3ai7xbFrf95CHCaofBXSGy5pkfFLsKjarABGkuBHLG5Rj
+        active:
+          permissions:
+            - EOS6diWN3ai7xbFrf95CHCaofBXSGy5pkfFLsKjarABGkuBHLG5Rj
+
+kylin:
+  chain_id: 5fff1dae8dc8e2fc4d5b23b2c7665c97f9e9d8edf2b6485a86ba311c25639191
+  # node_endpoint: https://kylin.eosdsp.com
+  node_endpoint: https://kylin-testnet.maltablock.org
+  # node_endpoint: https://kylin-dsp-2.liquidapps.io # heliosselene
+  # node_endpoint: https://kylin-dsp-1.liquidapps.io # uuddlrlrbass
+  accounts_manager: phoenixashes
+  funds_manager: phoenixashes
+  ram_manager: phoenixashes
+
+  accounts:
+    phoenixashes:
+      signature:
+        type: key
+        private_keys:
+          - 5
+      cpu:
+        - delegate_to: zosdiscount1
+          amount: 100000
+        - delegate_to: zoswaxconvr1
+          amount: 100000
+        - delegate_to: zosreporter1
+          amount: 100000
+        - delegate_to: zosuserwax11
+          amount: 100000
+      net:
+        - delegate_to: zosdiscount1
+          amount: 10000
+        - delegate_to: zoswaxconvr1
+          amount: 10000
+        - delegate_to: zosreporter1
+          amount: 10000
+        - delegate_to: zosuserwax11
+          amount: 10000
+      auth:
+        owner:
+          permissions:
+            - EOS7zz1H1YUkaRWS8z4XdUHKL8q4374MEhg12N3hyXXBkfbBKJZwE
+        active:
+          permissions:
+            - phoenixashes@eosio.code
+            - EOS7zz1H1YUkaRWS8z4XdUHKL8q4374MEhg12N3hyXXBkfbBKJZwE
+
+    zosdiscount1:
+      signature:
+        type: key
+        private_keys:
+          - 5
+      auth:
+        owner:
+          permissions:
+            - EOS4yvp7UEFo4cKNdikGWwr21tjeCSGtUM5YHoa2oZpQGvct9nfkJ
+        active:
+          permissions:
+            - EOS4yvp7UEFo4cKNdikGWwr21tjeCSGtUM5YHoa2oZpQGvct9nfkJ
+            - zosdiscount1@eosio.code
+            - zoswaxconvr1@eosio.code
+      ram: 500000
+      code: zos.token/build/token.wasm
+      abi: zos.token/build/token.abi
+
+    zoswaxconvr1:
+      signature:
+        type: key
+        private_keys:
+          - 5
+      auth:
+        owner:
+          permissions:
+            - EOS4yvp7UEFo4cKNdikGWwr21tjeCSGtUM5YHoa2oZpQGvct9nfkJ
+        active:
+          permissions:
+            - EOS4yvp7UEFo4cKNdikGWwr21tjeCSGtUM5YHoa2oZpQGvct9nfkJ
+            - zoswaxconvr1@eosio.code
+      ram: 500000
+      code: converteribc/build/converteribc.wasm
+      abi: converteribc/build/converteribc.abi
+
+    zosreporter1:
+      signature:
+        type: key
+        private_keys:
+          - 5
+      auth:
+        owner:
+          permissions:
+            - EOS4yvp7UEFo4cKNdikGWwr21tjeCSGtUM5YHoa2oZpQGvct9nfkJ
+        active:
+          permissions:
+            - EOS4yvp7UEFo4cKNdikGWwr21tjeCSGtUM5YHoa2oZpQGvct9nfkJ
+
+    zosuserwax11:
+      signature:
+        type: key
+        private_keys:
+          - 5
+      auth:
+        owner:
+          permissions:
+            - EOS4yvp7UEFo4cKNdikGWwr21tjeCSGtUM5YHoa2oZpQGvct9nfkJ
+        active:
+          permissions:
+            - EOS4yvp7UEFo4cKNdikGWwr21tjeCSGtUM5YHoa2oZpQGvct9nfkJ
+
+jungle:
+  chain_id: e70aaab8997e1dfce58fbfac80cbbb8fecec7b99cf982a9444273cbc64c41473
+  node_endpoint: https://jungle2.cryptolions.io:443
+  accounts_manager: cmicheljungl
+  funds_manager: cmicheljungl
+  ram_manager: cmicheljungl
+
+  accounts:
+    cmicheljungl:
+      signature:
+        type: key
+        private_keys:
+          - 5
+      cpu:
+        - delegate_to: cmicheljungl
+          amount: 100000
+        - delegate_to: zosdiscount1
+          amount: 100000
+        - delegate_to: zoseosconvr1
+          amount: 100000
+        - delegate_to: zosreporter1
+          amount: 100000
+        - delegate_to: zosusereos11
+          amount: 100000
+      net:
+        - delegate_to: cmicheljungl
+          amount: 10000
+        - delegate_to: zosdiscount1
+          amount: 10000
+        - delegate_to: zoseosconvr1
+          amount: 10000
+        - delegate_to: zosreporter1
+          amount: 10000
+        - delegate_to: zosusereos11
+          amount: 10000
+      auth:
+        owner:
+          permissions:
+            - EOS7o78FMjWR9eG56ZMXjS92L2CmhoboDHE34exkio8HNnk5f5mA6
+        active:
+          permissions:
+            - EOS7o78FMjWR9eG56ZMXjS92L2CmhoboDHE34exkio8HNnk5f5mA6
+
+    zosdiscount1:
+      signature:
+        type: key
+        private_keys:
+          - 5
+      auth:
+        owner:
+          permissions:
+            - EOS4yvp7UEFo4cKNdikGWwr21tjeCSGtUM5YHoa2oZpQGvct9nfkJ
+        active:
+          permissions:
+            - EOS4yvp7UEFo4cKNdikGWwr21tjeCSGtUM5YHoa2oZpQGvct9nfkJ
+            - zosdiscount1@eosio.code
+            - zoseosconvr1@eosio.code
+      ram: 500000
+      code: zos.token/build/token.wasm
+      abi: zos.token/build/token.abi
+
+    zoseosconvr1:
+      signature:
+        type: key
+        private_keys:
+          - 5
+      auth:
+        owner:
+          permissions:
+            - EOS4yvp7UEFo4cKNdikGWwr21tjeCSGtUM5YHoa2oZpQGvct9nfkJ
+        active:
+          permissions:
+            - EOS4yvp7UEFo4cKNdikGWwr21tjeCSGtUM5YHoa2oZpQGvct9nfkJ
+            - zoseosconvr1@eosio.code
+      ram: 500000
+      code: converteribc/build/converteribc.wasm
+      abi: converteribc/build/converteribc.abi
+
+    zosreporter1:
+      signature:
+        type: key
+        private_keys:
+          - 5
+      auth:
+        owner:
+          permissions:
+            - EOS4yvp7UEFo4cKNdikGWwr21tjeCSGtUM5YHoa2oZpQGvct9nfkJ
+        active:
+          permissions:
+            - EOS4yvp7UEFo4cKNdikGWwr21tjeCSGtUM5YHoa2oZpQGvct9nfkJ
+
+    zosusereos11:
+      signature:
+        type: key
+        private_keys:
+          - 5
+      auth:
+        owner:
+          permissions:
+            - EOS4yvp7UEFo4cKNdikGWwr21tjeCSGtUM5YHoa2oZpQGvct9nfkJ
+        active:
+          permissions:
+            - EOS4yvp7UEFo4cKNdikGWwr21tjeCSGtUM5YHoa2oZpQGvct9nfkJ

@@ -1,0 +1,3 @@
+[submodule "contracts/zos.token"]
+	path = contracts/zos.token
+	url = git@github_zmeta:airdropsdac/zos.token.git
