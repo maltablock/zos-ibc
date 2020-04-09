@@ -36,9 +36,9 @@ Once all accounts have been set up, users can use the converter contract on one 
 To achieve IBC between EOS and WAX we do the following. (Achieving IBC between WAX and EOS is done the same way.)
 
 1. We run a "watcher" script that uses [dfuse.io](https://dfuse.io) to scan the EOS blockchain for [ZOS transfers to the converter account](https://bloks.io/transaction/275710b7419909a9cb658943ab11db2afbf47abc03e45ee8bfa8d14657273ac4).
-2. The watcher script extracts the target account on the WAX blockchain from the memo of the transfer. It [**reports** the _EOS_ transaction](https://wax.bloks.io/transaction/4dafd202c005ba782762461cf384e9bbfeeeff5dc83b92233e52c931cf4c3298) to the converter account on _WAX_.
-3. Once a cross-chain transfer has been reported, the WAX converter issues the [tokens to the target account](https://wax.bloks.io/transaction/4dafd202c005ba782762461cf384e9bbfeeeff5dc83b92233e52c931cf4c3298).
-4. After observing a successful inter-chain transfer, the watcher script initiates [a token burn](https://bloks.io/transaction/92f3d96f9a7e4d56583fd7e548940fdc23a219c49676ffe58fd6415c4a68d5c9) of the user's assets on EOS. If the transfer failed, for example, because the target account does not exist, the funds are refunded to the user. This is done to ensure the circulating supply stats are correct across all chains.
+2. The watcher script extracts the target account on the WAX blockchain from the memo of the transfer. It [**reports** the _EOS_ transaction](https://wax.bloks.io/transaction/4dafd202c005ba782762461cf384e9bbfeeeff5dc83b92233e52c931cf4c3298?tab=traces) to the converter account on _WAX_.
+3. Once a cross-chain transfer has been reported, the WAX converter issues the [tokens to the target account](https://wax.bloks.io/transaction/4dafd202c005ba782762461cf384e9bbfeeeff5dc83b92233e52c931cf4c3298?tab=traces).
+4. After observing a successful inter-chain transfer, the watcher script initiates [a token burn](https://bloks.io/transaction/632c0d2815bc11f450d5cab5c1d2684108835ccd69961d2eade034e2a6afed3c) of the user's assets on EOS. If the transfer failed, for example, because the target account does not exist, the funds are refunded to the user. This is done to ensure the circulating supply stats are correct across all chains.
 
 At the moment, we run a single reporter that coordinates the blockchain communication.
 We plan to make this process more decentralized by having several independent parties act as reporters.
