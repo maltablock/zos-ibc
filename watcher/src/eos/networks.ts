@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 import { NetworkName, exhaustiveCheck } from "../types";
 import { isProduction } from "../utils";
 
-const NETWORKS_TO_WATCH: NetworkName[] = isProduction() ? [`mainnet`, `wax`] : [`jungle`, `kylin`]
+const NETWORKS_TO_WATCH: NetworkName[] = isProduction() ? [`mainnet`, `wax`] : [`kylin`]
 
 const getContractsForNetwork = (network: NetworkName) => {
   switch (network) {
@@ -17,7 +17,7 @@ const getContractsForNetwork = (network: NetworkName) => {
     case `kylin`:
       return {
         zosToken: `zosdiscount1`,
-        zosIbc: `zoswaxconvr1`,
+        zosIbc: `zoswaxconvr2`,
         zosReporter: `zosreporter1`,
         cpuPayer: ``,
       };

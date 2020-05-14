@@ -37,7 +37,7 @@ const logger = createLogger({
   ),
   transports: [
     new transports.Console({
-      level: `info`
+      level: isProduction() ? `info` : `silly`
     }),
     new transports.File({
       filename: logFilePath,

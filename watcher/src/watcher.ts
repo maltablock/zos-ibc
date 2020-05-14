@@ -1,4 +1,12 @@
-import { DfuseClient, SearchTransactionRow, ActionTrace } from "@dfuse/client";
+import {
+  DfuseClient,
+  SearchTransactionRow,
+  ActionTrace,
+  InboundMessageType,
+  InboundMessage,
+  OnGraphqlStreamMessage,
+  GraphqlStreamMessage,
+} from "@dfuse/client";
 import { logger } from "./logger";
 import { TEosAction } from "./eos/types";
 import { sleep, isProduction } from "./utils";
@@ -10,7 +18,7 @@ import { knex } from "./db";
 import Report from "./models/Report";
 import { EventStatus, NetworkName } from "./types";
 
-const MAX_BLOCK_RANGE_PER_SEARCH = 7200 * 1; // 1 hours
+const MAX_BLOCK_RANGE_PER_SEARCH = 7200 * 6; // 6 hours
 
 export default class Watcher {
   private client: DfuseClient;
@@ -23,7 +31,7 @@ export default class Watcher {
   constructor({
     client,
     accountToWatch,
-    networkName
+    networkName,
   }: {
     client: DfuseClient;
     accountToWatch: string;
@@ -36,7 +44,7 @@ export default class Watcher {
 
   public async start() {
     this.config = await WatcherConfig.query().findOne({
-      blockchain: this.networkName
+      blockchain: this.networkName,
     });
     logger.info(`${this.networkName}: `, this.config);
     let headBlockNumber = await fetchHeadBlockNumber(this.networkName)();
@@ -56,22 +64,78 @@ export default class Watcher {
           fromBlock + MAX_BLOCK_RANGE_PER_SEARCH
         );
 
-        if (toBlock > fromBlock) {
+        if (fromBlock > headBlockNumber - 60) {
+          // stream at 30 seconds
+          try {
+            await this.startStreaming(fromBlock);
+          } catch (error) {
+            if (
+              !(
+                /action received/gi.test(error.message) ||
+                /commit/gi.test(error.message)
+              )
+            ) {
+              throw error;
+            }
+          }
+        } else if (toBlock > fromBlock) {
           await this.getPendingActions(fromBlock, toBlock);
           await this.commit(toBlock);
           fromBlock = this.config.LastCommittedBlockNumber + 1;
         }
-
-        // if we're following LIB, wait 10 seconds each time
-        if (toBlock === headBlockNumber) {
-          await sleep(1e4);
-        }
       } catch (error) {
         logger.error(`Watcher (${this.networkName}): ${error.message}`);
-        await sleep(1e4);
+        await sleep(10 * 1e3);
       }
     }
   }
+
+  startStreaming = async (fromBlock) => {
+    return new Promise(async (_, reject) => {
+      try {
+        logger.info(`Starting to stream from ${fromBlock}`)
+        const streamTransfer = `subscription($cursor: String!) {
+          searchTransactionsForward(query: "receiver:${this.accountToWatch}", cursor: $cursor, lowBlockNum: ${fromBlock}, irreversibleOnly: true) {
+            undo cursor
+            trace {
+              matchingActions { account, name }
+            }
+          }
+        }`
+
+        let returned = false
+
+        // don't return this promise here, we never want to resolve from startStreaming
+        const stream = await this.client.graphql(streamTransfer, (message: GraphqlStreamMessage<any>) => {
+            logger.verbose(`WS-Message: ${message.type}`, JSON.stringify(message));
+            let rejectionMessage = ``
+            if (message.type === `error`) {
+              rejectionMessage = message.errors.map(x => x.message).join(`\n`);
+            } else if (message.type === `data`) {
+              const traces = message.data.searchTransactionsForward.trace.matchingActions
+              const firstAction = traces[0]
+              rejectionMessage = `action received: ${firstAction.account}:${firstAction.name}`
+              logger.info(`Watcher (${this.networkName}): streaming ${firstAction}`)
+            } else {
+              rejectionMessage = `Unknown GraphQL message type received: ${message.type}`
+            }
+            returned = true
+            stream.close().catch().then(() => {
+              reject(new Error(rejectionMessage));
+            })
+          },
+        );
+
+        // restart stream and let a search commit the actual result
+        await sleep((MAX_BLOCK_RANGE_PER_SEARCH / 2) * 1000);
+        if(returned) return;
+        await stream.close();
+        reject(new Error(`commit`));
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
 
   isMatchingTrace = (trace: ActionTrace<any>) => {
     if (trace.receipt.receiver !== this.accountToWatch) return false;
@@ -104,7 +168,7 @@ export default class Watcher {
       }
     }
 
-    return matchingTraces.map(trace => {
+    return matchingTraces.map((trace) => {
       return {
         blockNumber: trace.block_num,
         timestamp: trace.block_time,
@@ -119,7 +183,7 @@ export default class Watcher {
         // recv_sequence unique per contract, is a counter incremeted each time account is a receiver
         receiveSequence: trace.receipt.recv_sequence,
         // not necessarily unique as it just hashes the action data?
-        actDigest: trace.receipt.act_digest
+        actDigest: trace.receipt.act_digest,
       };
     });
   };
@@ -143,8 +207,8 @@ export default class Watcher {
             cursor,
             startBlock: fromBlock,
             // toBlock = fromBlock + blockCount
-            blockCount: toBlock - fromBlock
-          })
+            blockCount: toBlock - fromBlock,
+          }),
         ]);
       } catch (error) {
         let message = error.message;
@@ -166,7 +230,7 @@ export default class Watcher {
         transactions.push(...response.transactions);
       }
     } while (cursor !== ``);
-    transactions.forEach(trans => {
+    transactions.forEach((trans) => {
       const actions = this.getActionTraces(trans);
       this.pendingActions.push(...actions);
     });
@@ -183,20 +247,24 @@ export default class Watcher {
       await this.onActions(actionsToProcess);
     }
 
-    await this.config!.$query().patch({ lastCommittedBlockNumber: `${blockNum}` });
+    await this.config!.$query().patch({
+      lastCommittedBlockNumber: `${blockNum}`,
+    });
   }
 
   protected async onActions(actions: TEosAction[]) {
-    const valuesToInsert = actions.map(action => {
+    const valuesToInsert = actions.map((action) => {
       let event = {
         version: undefined,
         etype: undefined,
-        edata: undefined
+        edata: undefined,
       } as any;
 
       try {
-        const events = action.print.split(`\n`).map(e => JSON.parse(e || `{}`));
-        event = events.find(e => e.etype === `xtransfer`);
+        const events = action.print
+          .split(`\n`)
+          .map((e) => JSON.parse(e || `{}`));
+        event = events.find((e) => e.etype === `xtransfer`);
         if (!event) throw new Error(`Cannot find "xtransfer" event`);
       } catch (error) {
         logger.error(
@@ -215,19 +283,19 @@ export default class Watcher {
         etype,
         edata: JSON.stringify(edata || {}),
         actionData: JSON.stringify(action.data),
-        print: action.print
+        print: action.print,
       };
     });
 
     if (isProduction()) {
       // batch insert only works with Postgresql
-      await knex.transaction(async trx => {
+      await knex.transaction(async (trx) => {
         const events = await Event.query(trx).insert(valuesToInsert);
         const reports = await Report.query(trx).insert(
-          events.map(e => ({
+          events.map((e) => ({
             eventId: e.id,
             status: EventStatus.observed,
-            lastError: ``
+            lastError: ``,
           }))
         );
         return { events, reports };
@@ -238,7 +306,7 @@ export default class Watcher {
         await Report.query().insert({
           eventId: event.id,
           status: EventStatus.observed,
-          lastError: ``
+          lastError: ``,
         });
       }
     }

@@ -31,11 +31,12 @@ const createReportTable = table => {
 };
 
 const getStartBlockNumber = network => {
+  const THREE_DAYS_AS_BLOCKS = 2 * 60 * 60 * 24 * 2;
   switch (network) {
     case `kylin`:
-      return 80898000;
+      return 104224728 - THREE_DAYS_AS_BLOCKS;
     case `jungle`:
-      return 66686640;
+      return 91045607 - THREE_DAYS_AS_BLOCKS;
     case `mainnet`:
       return 98817667;
     case `wax`:
