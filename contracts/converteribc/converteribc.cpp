@@ -196,6 +196,8 @@ void converteribc::on_transfer(name from, name to, asset quantity,
       from == "eosio.rex"_n)
     return;
 
+  check(to == get_self(), "contract not involved in transfer");
+
   settings settings_table(get_self(), get_self().value);
   auto st = settings_table.get();
 
